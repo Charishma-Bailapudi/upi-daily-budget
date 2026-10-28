@@ -8,6 +8,7 @@ const userRoutes = require("./routes/userRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/budgets", budgetRoutes);
 app.use("/api/v1/transactions", transactionRoutes);
+app.use("/api/v1/webhook", webhookRoutes);
 app.use(healthRoutes);
 
 app.get("/", (req, res) => {
