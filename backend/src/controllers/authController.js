@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { randomInt } = require("node:crypto");
 const User = require("../models/User");
 
 function createToken(userId) {
@@ -85,4 +86,15 @@ function getMe(req, res) {
   });
 }
 
-module.exports = { register, login, getMe };
+async function generateTelegramLinkCode(req, res) {
+  const code = randomInt(100000, 1000000).toString();
+  const expiresInMinutes = 10;
+
+  req.user.telegramLinkCode = code;
+  req.user.telegramLinkExpires = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+  await req.user.save();
+
+  return res.status(200).json({ success: true, code, expiresInMinutes });
+}
+
+module.exports = { register, login, getMe, generateTelegramLinkCode };

@@ -39,8 +39,25 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "Asia/Kolkata",
     },
+    telegramChatId: {
+      type: Number,
+      default: null,
+    },
+    telegramLinkCode: {
+      type: String,
+      default: null,
+    },
+    telegramLinkExpires: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
+);
+
+userSchema.index(
+  { telegramChatId: 1 },
+  { unique: true, partialFilterExpression: { telegramChatId: { $type: "number" } } },
 );
 
 userSchema.pre("save", async function hashPassword() {
