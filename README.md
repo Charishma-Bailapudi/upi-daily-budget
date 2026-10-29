@@ -196,6 +196,13 @@ from the local default.
 frontend variables: Vite variables are bundled into browser code. Do not commit
 `.env` files.
 
+For the deployed frontend and API, set `FRONTEND_URL` on the backend host to
+the frontend's exact origin (scheme and hostname only, with no path), and set
+`VITE_API_URL` in the frontend deployment to the backend API base URL ending in
+`/api/v1`. Redeploy both services after changing these values. The backend also
+allows `http://localhost:5173` for local development; other origins are
+rejected.
+
 ## API reference
 
 All routes below are prefixed with `/api/v1`, except `/health` and `/`. Routes

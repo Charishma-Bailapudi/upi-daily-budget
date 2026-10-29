@@ -15,7 +15,6 @@ const app = express();
 
 app.use(helmet());
 
-// Dynamic CORS configuration allowing localhost, FRONTEND_URL, and all Vercel deployments
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
@@ -23,14 +22,8 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests (Postman, Telegram webhooks, mobile scripts)
     if (!origin) return callback(null, true);
-
-    // Allow configured origins
     if (allowedOrigins.includes(origin)) return callback(null, true);
-
-    // Allow all Vercel preview and production subdomains
-    if (origin.endsWith(".vercel.app")) return callback(null, true);
 
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
@@ -46,7 +39,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 app.use(express.json());
 app.use(morgan("dev"));
