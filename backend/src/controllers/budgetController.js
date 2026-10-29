@@ -1,18 +1,21 @@
-const { getOrCreateDailyBudget } = require("../utils/budgetUtils");
+const DailyBudget = require("../models/DailyBudget");
 const { getTodayDateString } = require("../utils/dateUtils");
-const { executeDailyRollover } = require("../services/rolloverService");
+const {
+  executeDailyRollover,
+  recoverUserDailyBudget,
+} = require("../services/rolloverService");
 const {
   getSpendingAnalytics,
   MAX_ANALYTICS_DAYS,
 } = require("../services/analyticsService");
 
 async function getTodayBudget(req, res) {
-  const date = getTodayDateString();
-  const budget = await getOrCreateDailyBudget(
-    req.user._id,
-    date,
-    req.user.defaultDailyCap,
-  );
+  const date = getTodayDateString("Asia/Kolkata");
+  let budget = await DailyBudget.findOne({ userId: req.user._id, date });
+
+  if (!budget) {
+    budget = await recoverUserDailyBudget(req.user, date);
+  }
 
   return res.status(200).json({ success: true, budget });
 }

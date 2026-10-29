@@ -14,7 +14,7 @@ function DummyUpiModal({
 }) {
   const toast = useToast()
   const [pin, setPin] = useState('')
-  const [processing, setProcessing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [error, setError] = useState('')
   const [shakeKey, setShakeKey] = useState(0)
@@ -24,19 +24,19 @@ function DummyUpiModal({
     if (!isOpen) return undefined
 
     function handleKeyDown(event) {
-      if (event.key === 'Escape' && !processing && !paymentComplete) {
+      if (event.key === 'Escape' && !isSubmitting && !submitted.current && !paymentComplete) {
         onClose()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose, paymentComplete, processing])
+  }, [isOpen, onClose, paymentComplete, isSubmitting])
 
   useEffect(() => {
     if (!isOpen) return
     setPin('')
-    setProcessing(false)
+    setIsSubmitting(false)
     setPaymentComplete(false)
     setError('')
     submitted.current = false
@@ -51,7 +51,7 @@ function DummyUpiModal({
   if (!isOpen) return null
 
   function appendDigit(digit) {
-    if (processing || paymentComplete || pin.length >= 4) return
+    if (isSubmitting || submitted.current || paymentComplete || pin.length >= 4) return
     setError('')
     const nextPin = `${pin}${digit}`
     setPin(nextPin)
@@ -61,15 +61,15 @@ function DummyUpiModal({
   }
 
   function deleteDigit() {
-    if (processing || paymentComplete) return
+    if (isSubmitting || submitted.current || paymentComplete) return
     setError('')
     setPin((current) => current.slice(0, -1))
   }
 
   async function submitPayment(pinValue = pin) {
-    if (pinValue.length !== 4 || submitted.current || processing) return
+    if (pinValue.length !== 4 || submitted.current || isSubmitting) return
     submitted.current = true
-    setProcessing(true)
+    setIsSubmitting(true)
     setError('')
 
     try {
@@ -94,7 +94,7 @@ function DummyUpiModal({
       }
       toast.error(message)
     } finally {
-      setProcessing(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -102,7 +102,14 @@ function DummyUpiModal({
     <div
       className="upi-modal-backdrop"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !processing && !paymentComplete) onClose()
+        if (
+          event.target === event.currentTarget &&
+          !isSubmitting &&
+          !submitted.current &&
+          !paymentComplete
+        ) {
+          onClose()
+        }
       }}
     >
       <section
@@ -110,13 +117,14 @@ function DummyUpiModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="upi-modal-heading"
+        aria-busy={isSubmitting}
       >
         <header className="upi-modal-header">
           <button
             className="upi-modal-back"
             type="button"
             onClick={onClose}
-            disabled={processing || paymentComplete}
+            disabled={isSubmitting || submitted.current || paymentComplete}
             aria-label="Close checkout"
           >
             <ArrowLeft size={18} />
@@ -126,7 +134,7 @@ function DummyUpiModal({
             className="upi-modal-close"
             type="button"
             onClick={onClose}
-            disabled={processing || paymentComplete}
+            disabled={isSubmitting || submitted.current || paymentComplete}
             aria-label="Close checkout"
           >
             <X size={18} />
@@ -157,7 +165,7 @@ function DummyUpiModal({
               pin={pin}
               error={error}
               shakeKey={shakeKey}
-              disabled={processing}
+              disabled={isSubmitting || submitted.current}
               onDigit={appendDigit}
               onBackspace={deleteDigit}
             />

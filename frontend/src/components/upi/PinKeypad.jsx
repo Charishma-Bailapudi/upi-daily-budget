@@ -23,7 +23,11 @@ function PinKeypad({ pin, error, disabled, shakeKey, onDigit, onBackspace }) {
         ))}
       </div>
 
-      <div className="pin-keypad" aria-label="UPI PIN keypad">
+      <div
+        className="pin-keypad"
+        aria-label="UPI PIN keypad"
+        aria-disabled={disabled}
+      >
         {keypadRows.flat().map((digit) => (
           <button
             className="pin-key"

@@ -187,7 +187,7 @@ from the local default.
 | `JWT_SECRET` | Yes | Secret used to sign and verify authentication JWTs. Use a long, unique, randomly generated value. |
 | `JWT_EXPIRES_IN` | Yes | JWT lifetime accepted by `jsonwebtoken` (for example, `1d`). |
 | `PORT` | No | API listening port; defaults to `5000`. |
-| `CLIENT_URL` | No | Allowed frontend origin for CORS; defaults to `http://localhost:5173`. |
+| `FRONTEND_URL` | No | Additional allowed frontend origin for CORS; `http://localhost:5173` is also allowed. |
 | `TELEGRAM_BOT_TOKEN` | Optional | Telegram Bot API token used for outbound messages and webhook setup. |
 | `TELEGRAM_WEBHOOK_SECRET` | Optional | Secret expected in Telegram's `X-Telegram-Bot-Api-Secret-Token` webhook header. |
 | `VITE_API_BASE_URL` | No | Frontend API base URL; defaults to `http://localhost:5000/api/v1`. |
@@ -391,5 +391,5 @@ npm run build
 - Telegram webhook requests are authenticated with Telegram's secret-token
   header. Use a strong private value and configure the same value with
   Telegram.
-- Review CORS (`CLIENT_URL`), rate limits, monitoring, backups, audit logging,
+- Review CORS (`FRONTEND_URL`), rate limits, monitoring, backups, audit logging,
   and role-based operations controls before exposing the service publicly.

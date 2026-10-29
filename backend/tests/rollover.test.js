@@ -9,7 +9,10 @@ jest.mock("../src/models/DailyBudget", () => ({
 
 const { User, DailyBudget } = require("../src/models");
 const telegramService = require("../src/services/telegramService");
-const { executeDailyRollover } = require("../src/services/rolloverService");
+const {
+  executeDailyRollover,
+  recoverUserDailyBudget,
+} = require("../src/services/rolloverService");
 
 describe("daily rollover service", () => {
   beforeEach(() => {
@@ -83,5 +86,38 @@ describe("daily rollover service", () => {
       expect.stringContaining("Allowance for Today: ₹1,250"),
       "Markdown",
     );
+  });
+
+  test("recovers a missing daily budget and finalizes yesterday on demand", async () => {
+    const user = {
+      _id: "507f1f77bcf86cd799439011",
+      defaultDailyCap: 1250,
+    };
+    const yesterdayBudget = {
+      _id: "607f1f77bcf86cd799439012",
+      remainingBalance: 350,
+    };
+    const todayBudget = { date: "2026-10-29", dailyCap: 1250 };
+    DailyBudget.findOne.mockResolvedValue(yesterdayBudget);
+    DailyBudget.findOneAndUpdate.mockImplementation(async (filter, update) => {
+      if (filter._id && update.$set?.status === "CLOSED") {
+        return { ...yesterdayBudget, status: "CLOSED" };
+      }
+      if (filter.date === "2026-10-29" && update.$setOnInsert) {
+        return todayBudget;
+      }
+      return null;
+    });
+    User.findOneAndUpdate.mockResolvedValue({ _id: user._id });
+
+    await expect(recoverUserDailyBudget(user, "2026-10-29")).resolves.toBe(
+      todayBudget,
+    );
+    expect(User.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: user._id },
+      { $inc: { savingsPotBalance: 350 } },
+      expect.objectContaining({ returnDocument: "after" }),
+    );
+    expect(telegramService.sendMessage).not.toHaveBeenCalled();
   });
 });

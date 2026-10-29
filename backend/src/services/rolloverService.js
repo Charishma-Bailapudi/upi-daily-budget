@@ -85,12 +85,27 @@ async function finalizeYesterdayBudget(user, yesterdayDate) {
   return yesterdayBudget;
 }
 
-async function processUserRollover(user, todayDate, yesterdayDate) {
+async function initializeUserDailyBudget(user, todayDate) {
+  const yesterdayDate = getYesterdayDateString(todayDate);
   const yesterdayBudget = await finalizeYesterdayBudget(user, yesterdayDate);
   const todayBudget = await getOrCreateDailyBudget(
     user._id,
     todayDate,
     user.defaultDailyCap,
+  );
+
+  return { yesterdayBudget, todayBudget };
+}
+
+async function recoverUserDailyBudget(user, todayDate) {
+  const { todayBudget } = await initializeUserDailyBudget(user, todayDate);
+  return todayBudget;
+}
+
+async function processUserRollover(user, todayDate) {
+  const { yesterdayBudget, todayBudget } = await initializeUserDailyBudget(
+    user,
+    todayDate,
   );
 
   if (user.telegramChatId) {
@@ -101,7 +116,6 @@ async function processUserRollover(user, todayDate, yesterdayDate) {
 
 async function executeDailyRollover() {
   const todayDate = getTodayDateString("Asia/Kolkata");
-  const yesterdayDate = getYesterdayDateString(todayDate);
   const users = await User.find({});
   const stats = {
     totalUsersProcessed: users.length,
@@ -111,7 +125,7 @@ async function executeDailyRollover() {
 
   for (const user of users) {
     try {
-      await processUserRollover(user, todayDate, yesterdayDate);
+      await processUserRollover(user, todayDate);
       stats.successCount += 1;
     } catch (error) {
       stats.failedCount += 1;
@@ -122,4 +136,4 @@ async function executeDailyRollover() {
   return stats;
 }
 
-module.exports = { executeDailyRollover };
+module.exports = { executeDailyRollover, recoverUserDailyBudget };
