@@ -22,6 +22,7 @@ function toPublicUser(user) {
     upiId: user.upiId,
     defaultDailyCap: user.defaultDailyCap,
     timezone: user.timezone,
+    telegramLinked: Boolean(user.telegramChatId),
     createdAt: user.createdAt,
   };
 }
