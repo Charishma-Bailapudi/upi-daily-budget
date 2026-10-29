@@ -9,6 +9,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
+const upiRoutes = require("./routes/upiRoutes");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/budgets", budgetRoutes);
 app.use("/api/v1/transactions", transactionRoutes);
+app.use("/api/v1/upi", upiRoutes);
 app.use("/api/v1/webhook", webhookRoutes);
 app.use(healthRoutes);
 
@@ -43,11 +45,7 @@ app.use((error, req, res, next) => {
   }
 
   const status =
-    error.name === "ValidationError"
-      ? 400
-      : error.code === 11000
-        ? 409
-        : 500;
+    error.name === "ValidationError" ? 400 : error.code === 11000 ? 409 : 500;
 
   return res.status(status).json({
     success: false,
