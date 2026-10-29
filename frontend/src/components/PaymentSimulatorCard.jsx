@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { ArrowUpRight, LockKeyhole } from 'lucide-react'
 import api, { getErrorMessage } from '../lib/api'
+import { useToast } from './ToastProvider'
 
 function PaymentSimulatorCard({ onPaymentSuccess }) {
+  const toast = useToast()
   const [amount, setAmount] = useState('')
   const [merchant, setMerchant] = useState('')
   const [upiPin, setUpiPin] = useState('')
@@ -27,8 +29,11 @@ function PaymentSimulatorCard({ onPaymentSuccess }) {
       setMerchant('')
       setUpiPin('')
       onPaymentSuccess()
+      toast.success('Payment simulated successfully.')
     } catch (requestError) {
-      setError(getErrorMessage(requestError))
+      const message = getErrorMessage(requestError)
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }

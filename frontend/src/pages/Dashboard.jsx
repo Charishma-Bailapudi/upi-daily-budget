@@ -5,6 +5,7 @@ import AnalyticsCard from '../components/AnalyticsCard'
 import DailyAllowanceCard from '../components/DailyAllowanceCard'
 import PaymentSimulatorCard from '../components/PaymentSimulatorCard'
 import TelegramLinkCard from '../components/TelegramLinkCard'
+import TransactionHistoryCard from '../components/TransactionHistoryCard'
 
 function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0)
@@ -64,6 +65,7 @@ function Dashboard() {
         <TelegramLinkCard isLinked={user?.telegramLinked} />
         <AnalyticsCard refreshKey={refreshKey} />
         <PaymentSimulatorCard onPaymentSuccess={refreshDashboard} />
+        <TransactionHistoryCard refreshKey={refreshKey} />
       </div>
 
       <footer className="dashboard-footer">

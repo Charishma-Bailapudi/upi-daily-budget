@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy, MessageCircle, Send } from 'lucide-react'
 import api, { getErrorMessage } from '../lib/api'
+import { useToast } from './ToastProvider'
 
 function TelegramLinkCard({ isLinked }) {
+  const toast = useToast()
   const [code, setCode] = useState('')
   const [expiresAt, setExpiresAt] = useState(0)
   const [secondsLeft, setSecondsLeft] = useState(0)
@@ -42,8 +44,11 @@ function TelegramLinkCard({ isLinked }) {
     try {
       await navigator.clipboard.writeText(code)
       setCopied(true)
+      toast.success('Telegram linking code copied.')
     } catch {
-      setError('Could not access the clipboard. Select and copy the code instead.')
+      const message = 'Could not access the clipboard. Select and copy the code instead.'
+      setError(message)
+      toast.error(message)
     }
   }
 

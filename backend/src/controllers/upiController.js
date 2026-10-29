@@ -4,6 +4,7 @@ const { processUpiPayment } = require("../services/deductionEngine");
 const { getRoast } = require("../services/roastService");
 const telegramService = require("../services/telegramService");
 const { getTodayDateString } = require("../utils/dateUtils");
+const Transaction = require("../models/Transaction");
 
 const statusPresentation = {
   GREEN: "🟢",
@@ -137,4 +138,59 @@ async function simulatePayment(req, res) {
   return res.status(200).json(result);
 }
 
-module.exports = { simulatePayment };
+async function getTransactions(req, res) {
+  const rawLimit = req.query.limit ?? "10";
+  const rawPage = req.query.page ?? "1";
+
+  if (
+    typeof rawLimit !== "string" ||
+    !/^\d+$/.test(rawLimit) ||
+    typeof rawPage !== "string" ||
+    !/^\d+$/.test(rawPage)
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "limit and page must be positive integers",
+    });
+  }
+
+  const limit = Number(rawLimit);
+  const page = Number(rawPage);
+  if (
+    !Number.isSafeInteger(limit) ||
+    limit < 1 ||
+    limit > 100 ||
+    !Number.isSafeInteger(page) ||
+    page < 1 ||
+    (page - 1) * limit > 2_147_483_647
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "limit must be between 1 and 100 and page must be positive",
+    });
+  }
+
+  const records = await Transaction.find({ userId: req.user._id })
+    .select("_id amount merchant categoryId createdAt")
+    .populate("categoryId", "name")
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
+
+  const transactions = records.map((transaction) => ({
+    _id: transaction._id,
+    amount: transaction.amount,
+    merchant: transaction.merchant,
+    category: transaction.categoryId?.name || "Other",
+    createdAt: transaction.createdAt,
+  }));
+
+  return res.status(200).json({
+    success: true,
+    count: transactions.length,
+    transactions,
+  });
+}
+
+module.exports = { simulatePayment, getTransactions };
