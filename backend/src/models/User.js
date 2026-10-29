@@ -22,6 +22,12 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+    upiPin: {
+      type: String,
+      required: true,
+      default: "$2b$10$U7Y0.rca5TldBVo0Ti00qOym2ipuOJ2SmHT5ne9LbdKWenCrZ/CBO",
+      select: false,
+    },
     upiId: {
       type: String,
       required: true,

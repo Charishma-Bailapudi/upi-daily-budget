@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { LogOut, WalletCards } from 'lucide-react'
 import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 import AnalyticsCard from '../components/AnalyticsCard'
@@ -6,15 +6,25 @@ import DailyAllowanceCard from '../components/DailyAllowanceCard'
 import PaymentSimulatorCard from '../components/PaymentSimulatorCard'
 import TelegramLinkCard from '../components/TelegramLinkCard'
 import TransactionHistoryCard from '../components/TransactionHistoryCard'
+import DummyUpiModal from '../components/upi/DummyUpiModal'
 
 function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0)
+  const [selectedMerchant, setSelectedMerchant] = useState(null)
   const { user } = useOutletContext()
   const navigate = useNavigate()
 
-  function refreshDashboard() {
+  const refreshDashboard = useCallback(() => {
     setRefreshKey((key) => key + 1)
-  }
+  }, [])
+
+  const openCheckout = useCallback((merchant) => {
+    setSelectedMerchant(merchant)
+  }, [])
+
+  const closeCheckout = useCallback(() => {
+    setSelectedMerchant(null)
+  }, [])
 
   function handleLogout() {
     window.localStorage.removeItem('token')
@@ -64,9 +74,20 @@ function Dashboard() {
         <DailyAllowanceCard refreshKey={refreshKey} />
         <TelegramLinkCard isLinked={user?.telegramLinked} />
         <AnalyticsCard refreshKey={refreshKey} />
-        <PaymentSimulatorCard onPaymentSuccess={refreshDashboard} />
+        <PaymentSimulatorCard
+          onContinueCheckout={openCheckout}
+        />
         <TransactionHistoryCard refreshKey={refreshKey} />
       </div>
+
+      <DummyUpiModal
+        isOpen={Boolean(selectedMerchant)}
+        merchant={selectedMerchant?.name || ''}
+        amount={selectedMerchant?.amount || 0}
+        selectedApp={selectedMerchant?.app || ''}
+        onClose={closeCheckout}
+        onPaymentSuccess={refreshDashboard}
+      />
 
       <footer className="dashboard-footer">
         <span>Built for mindful spending</span>

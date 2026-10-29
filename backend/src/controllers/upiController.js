@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const DailyBudget = require("../models/DailyBudget");
+const User = require("../models/User");
 const { processUpiPayment } = require("../services/deductionEngine");
 const { getRoast } = require("../services/roastService");
 const telegramService = require("../services/telegramService");
@@ -70,10 +72,24 @@ async function simulatePayment(req, res) {
     });
   }
 
-  if (typeof upiPin !== "string" || !/^\d{4}(\d{2})?$/.test(upiPin)) {
+  if (typeof upiPin !== "string" || !/^\d{4}$/.test(upiPin)) {
     return res.status(400).json({
       success: false,
-      message: "Invalid UPI PIN format. Must be 4 or 6 numeric digits.",
+      message: "Invalid UPI PIN format. Must be 4 numeric digits.",
+    });
+  }
+
+  const user = await User.findById(req.user._id).select("+upiPin");
+  if (!user) {
+    throw new Error("Authenticated user was not found while verifying UPI PIN");
+  }
+
+  const pinMatches = await bcrypt.compare(upiPin, user.upiPin);
+  if (!pinMatches) {
+    return res.status(401).json({
+      success: false,
+      error: "INCORRECT_PIN",
+      message: "Incorrect UPI PIN. Please try again.",
     });
   }
 

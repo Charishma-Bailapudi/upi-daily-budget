@@ -1,42 +1,33 @@
 import { useState } from 'react'
-import { ArrowUpRight, LockKeyhole } from 'lucide-react'
-import api, { getErrorMessage } from '../lib/api'
-import { useToast } from './ToastProvider'
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CreditCard,
+  Smartphone,
+  WalletCards,
+  ShoppingBag,
+} from 'lucide-react'
 
-function PaymentSimulatorCard({ onPaymentSuccess }) {
-  const toast = useToast()
+const paymentApps = [
+  { name: 'PhonePe', icon: Smartphone, tone: 'phonepe' },
+  { name: 'Google Pay', icon: WalletCards, tone: 'gpay' },
+  { name: 'Amazon Pay', icon: ShoppingBag, tone: 'amazon' },
+  { name: 'Razorpay', icon: CreditCard, tone: 'razorpay' },
+]
+
+function PaymentSimulatorCard({ onContinueCheckout = () => {} }) {
   const [amount, setAmount] = useState('')
   const [merchant, setMerchant] = useState('')
-  const [upiPin, setUpiPin] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [selectedApp, setSelectedApp] = useState('')
 
-  async function handleSubmit(event) {
+  function handleContinue(event) {
     event.preventDefault()
-    setError('')
-    setSuccess('')
-    setLoading(true)
-
-    try {
-      await api.post('/upi/pay', {
-        amount: Number(amount),
-        merchant: merchant.trim(),
-        upiPin,
-      })
-      setSuccess('Payment simulated successfully. Your budget and analytics have been refreshed.')
-      setAmount('')
-      setMerchant('')
-      setUpiPin('')
-      onPaymentSuccess()
-      toast.success('Payment simulated successfully.')
-    } catch (requestError) {
-      const message = getErrorMessage(requestError)
-      setError(message)
-      toast.error(message)
-    } finally {
-      setLoading(false)
-    }
+    if (!selectedApp) return
+    onContinueCheckout({
+      name: merchant.trim(),
+      amount: Number(amount),
+      app: selectedApp,
+    })
   }
 
   return (
@@ -48,9 +39,9 @@ function PaymentSimulatorCard({ onPaymentSuccess }) {
         </div>
         <span className="icon-tile accent" aria-hidden="true"><ArrowUpRight size={21} /></span>
       </div>
-      <p className="card-description">Record a test UPI payment and see your daily allowance update instantly.</p>
+      <p className="card-description">Enter a merchant and amount, choose a payment app, then complete the demo checkout. No real UPI payment is made.</p>
 
-      <form className="payment-form" onSubmit={handleSubmit}>
+      <form className="payment-form" onSubmit={handleContinue}>
         <label>
           Amount
           <span className="input-prefix">
@@ -78,31 +69,28 @@ function PaymentSimulatorCard({ onPaymentSuccess }) {
             required
           />
         </label>
-        <label>
-          UPI PIN
-          <span className="input-prefix pin-input">
-            <LockKeyhole size={16} aria-hidden="true" />
-            <input
-              type="password"
-              inputMode="numeric"
-              autoComplete="off"
-              minLength={4}
-              maxLength={6}
-              pattern="\d{4}(\d{2})?"
-              value={upiPin}
-              onChange={(event) => setUpiPin(event.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="4 or 6 digit PIN"
-              required
-            />
-          </span>
-        </label>
-        {error && <p className="error-message form-feedback" role="alert">{error}</p>}
-        {success && <p className="success-message form-feedback" role="status">{success}</p>}
-        <button className="button button-primary full-width" type="submit" disabled={loading}>
-          {loading ? 'Processing…' : 'Send payment'}
-          {!loading && <ArrowUpRight size={17} />}
+        <fieldset className="payment-app-fieldset">
+          <legend>Choose a payment app</legend>
+          <div className="payment-app-grid">
+            {paymentApps.map(({ name, icon: Icon, tone }) => (
+              <button
+                className={`payment-app-option ${selectedApp === name ? 'selected' : ''}`}
+                key={name}
+                type="button"
+                onClick={() => setSelectedApp(name)}
+                aria-pressed={selectedApp === name}
+              >
+                <span className={`payment-app-icon ${tone}`}><Icon size={18} /></span>
+                <span>{name}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <button className="button button-primary full-width" type="submit" disabled={!selectedApp}>
+          Continue to PIN
+          <ArrowRight size={17} />
         </button>
-        <p className="security-note"><LockKeyhole size={13} /> The PIN is sent only with this payment request.</p>
+        <p className="security-note">Demo only — the selected app is for display and does not open a real payment app.</p>
       </form>
     </section>
   )
