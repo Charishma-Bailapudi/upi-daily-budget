@@ -42,7 +42,7 @@ const dailyBudgetSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["GREEN", "YELLOW", "RED"],
+      enum: ["GREEN", "YELLOW", "RED", "CLOSED"],
       default: "GREEN",
     },
     nightlyRoast: {

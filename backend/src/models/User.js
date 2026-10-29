@@ -35,6 +35,11 @@ const userSchema = new mongoose.Schema(
       default: 3300,
       min: 100,
     },
+    savingsPotBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     timezone: {
       type: String,
       default: "Asia/Kolkata",
