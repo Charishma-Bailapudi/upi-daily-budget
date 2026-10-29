@@ -14,17 +14,43 @@ const upiRoutes = require("./routes/upiRoutes");
 const app = express();
 
 app.use(helmet());
-app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URL,
-      "http://localhost:5173",
-    ].filter(Boolean),
-    credentials: true,
-  }),
-);
+
+// Dynamic CORS configuration allowing localhost, FRONTEND_URL, and all Vercel deployments
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (Postman, Telegram webhooks, mobile scripts)
+    if (!origin) return callback(null, true);
+
+    // Allow configured origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow all Vercel preview and production subdomains
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Idempotency-Key",
+    "x-sms-secret",
+    "X-Telegram-Bot-Api-Secret-Token",
+  ],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 app.use(morgan("dev"));
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRoutes);
@@ -57,7 +83,7 @@ app.use((error, req, res, next) => {
         ? error.message
         : status === 409
           ? "A user with that value already exists"
-          : "Internal server error",
+          : error.message || "Internal server error",
   });
 });
 
