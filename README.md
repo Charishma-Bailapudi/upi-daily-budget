@@ -176,7 +176,7 @@ npm run build
 npm run preview
 ```
 
-Set `VITE_API_BASE_URL` to the public API base URL at build time when it differs
+Set `VITE_API_URL` to the public API base URL at build time when it differs
 from the local default.
 
 ## Environment configuration
@@ -190,7 +190,7 @@ from the local default.
 | `FRONTEND_URL` | No | Additional allowed frontend origin for CORS; `http://localhost:5173` is also allowed. |
 | `TELEGRAM_BOT_TOKEN` | Optional | Telegram Bot API token used for outbound messages and webhook setup. |
 | `TELEGRAM_WEBHOOK_SECRET` | Optional | Secret expected in Telegram's `X-Telegram-Bot-Api-Secret-Token` webhook header. |
-| `VITE_API_BASE_URL` | No | Frontend API base URL; defaults to `http://localhost:5000/api/v1`. |
+| `VITE_API_URL` | No | Frontend API base URL; defaults to `http://localhost:5000/api/v1`. |
 
 `backend/server.js` loads dotenv before starting the API. Never place secrets in
 frontend variables: Vite variables are bundled into browser code. Do not commit
